@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    {% if err %}
+        <title>Возникла ошибка</title>
+    {% else %}
+        <title>{{albumAuthor}} - {{albumName}}</title>
+    {% endif %}
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+
+</head>
+<body>
+    {% include "header.html"%}
+    {% if login %}
+        <a href="editAlbum?id={{albumId}}">Редактировать</a>
+    {% endif %}
+
+    {% if login == "admin" %}
+        <a href="deleteAlbum?id={{albumId}}">Удалить</a>
+    {% endif %}
+
+    {% if err %}
+        <p>Возникла ошибка</p>
+    {% else %}
+        <p> <a href="author?id={{albumAuthorId}}"> {{albumAuthor}} </a> - {{albumName}} </p>
+        <p> Дата выхода: {{date}}</p>
+        <img src="{% static coverLink %}" width="400" height="400">
+    {% endif %}
+
+    <table>
+        {%for track in tracks %}
+           <tr><td> {{track.0}}.</td> <td>{{track.1}}</td> <td>{{track.2}}</td> -
+
+                <td><input type="button" value="{%if track.3%}dislike{% else %}like{% endif %}"
+                       id="likeButton{{track.4}}" onclick="likeOrDislike({{track.4}})"></td>
+            </tr>
+        {%endfor%}
+    </table>
+</body>
+<script>
+  function likeOrDislike(trackId){
+      $.get("likeOrDislikeTrack", {"trackId":trackId})
+      bt = "#likeButton"+trackId
+      if($(bt).val() == "like") $(bt).val("dislike")
+      else $(bt).val("like")
+  }
+  setTimeout(function() {
+    $.get("checkAlbum", {"albumId": {{albumId}}});
+    console.log("Альбом просмотрен");
+    }, 15000);
+</script>
+</html>

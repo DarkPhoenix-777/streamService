@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'libs/sha256.js' %}"></script>
+    <meta charset="UTF-8">
+    <style>
+        table.searchTable {
+          border: 1px solid #000000;
+          background-color: #EEEEEE;
+          text-align: center;
+          border-collapse: collapse;
+        }
+        table.searchTable td, table.searchTable th {
+          border: 1px solid #666666;
+          padding: 3px 4px;
+        }
+        table.searchTable thead th {
+          font-weight: bold;
+          color: #FFFFFF;
+          border-left: 2px solid #D0E4F5;
+        }
+        table.searchTable thead th:first-child {
+          border-left: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <a href="/">Назад</a><br><br>
+    <form name="searchForm" id="searchForm" method="get">
+        <input type="text" name="search" value="{{query}}">
+        <input type="submit" value="Поиск">
+    </form>
+    <br>
+    {% if objectsCount %}
+        <table class="searchTable">
+            <tr><td>ID</td><td>Имя пользователя</td><td>Логин</td><td>Хеш пароля</td><td>Роль</td><td></td><td>Удалить</td></tr>
+        {% for user in objects %}
+            <tr><form method="post" name="userDataForm{{user.0}}">
+                {% csrf_token %}
+                <input type="hidden" name="userId" value="{{user.0}}">
+                <td>{{user.0}}</td>
+                <td><input type="text" name="username{{user.0}}" value="{{user.1}}"></td>
+                <td><input type="text" name="login{{user.0}}" value="{{user.2}}"></td>
+                <td><input type="text" name="passhash{{user.0}}" value="{{user.3}}"></td>
+                <td><select name="userRole{{user.0}}">
+                    <option {% if user.4 %} selected="selected" {%endif%} value="User">Пользователь</option>
+                    <option {% if user.5 %} selected="selected" {%endif%} value="Moderator">Модератор</option>
+                    <option {% if user.6 %} selected="selected" {%endif%} value="Admin">Админ</option>
+                </select></td>
+                <td><input type="submit" value="Изменить"></td>
+            </form>
+                <td>
+                    {%if not user.6%} <input type="button" value="Удалить" id="delUser{{user.0}}" onclick="delUser({{user.0}})"> {% endif %}
+                </td>
+            </tr>
+        {%endfor%}
+        </table>
+    {%endif%}
+
+</body>
+<script>
+    function delUser(userId){
+        let confirmation = confirm("Подтверждаете?");
+        if(confirmation){
+            $.get("delUser", {"userId": userId}, function(data){
+                bt = "#delUser" + userId;
+                $(bt).val("Удалено");
+                $(bt).attr("onclick", "");
+            });
+        }
+    }
+
+</script>
+</html>

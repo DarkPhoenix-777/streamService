@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+</head>
+<body>
+  {% include "header.html"%}
+  <br>
+  <a href="logout">Выйти</a>
+  <br>
+  <a href="changePass">Сменить пароль</a>
+  <br>
+  <p>
+    <h2>Информация </h2>
+    Логин: {{login}} <br>
+    Имя пользователя: {{username}} <br>
+    Роль: {{role}}
+  </p>
+  <br>
+  <p>
+    <h2>Любимые треки</h2>
+    <table border="1">
+      {% autoescape off %}
+        {% for track in likedTracks%}
+          <tr><td>{{track.0}}</td> <td>{{track.1}}</td> <td>{{track.2}}</td> <td>{{track.3}}</td> <td>{{track.4}} </td> 
+            <td><input type="button" value="dislike" id="likeButton{{track.5}}" onclick="likeOrDislike({{track.5}})"></td></tr>
+        {% endfor%}
+      {% endautoescape %}
+  </table>
+</body>
+<script>
+  function likeOrDislike(trackId){
+      $.get("likeOrDislikeTrack", {"trackId":trackId})
+      bt = "#likeButton"+trackId
+      if($(bt).val() == "like") $(bt).val("dislike")
+      else $(bt).val("like")
+  }
+</script>
+</html>

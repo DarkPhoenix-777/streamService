@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'libs/sha256.js' %}"></script>
+</head>
+<body>
+    {% include "header.html"%}
+    <a href="register">Регистрация</a><br>
+    <form method="post" id="loginForm">
+        {% csrf_token %}
+        <table> {{form}} </table>
+        <input type="button" value="Войти" onclick="checkIn()">
+    </form>
+
+    {% if isWrongLogin %}
+        <p>Неверный логин</p>
+    {% endif %}
+
+    {% if isWrongPass %}
+        <p>Неверный пароль</p>
+    {% endif %}
+</body>
+<script>
+
+    function checkIn(){
+        let loginData = $("#loginForm").serializeArray();
+
+            loginData[2].value = sha256(loginData[2].value);
+            $.ajax({
+                url: "check",
+                method: "POST",
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: loginData,
+                success: function(data){
+                    if(!data.isWrongLogin && !data.isWrongPass) window.location.href = "/";
+                    else if(data.isWrongLogin) alert("Неверный логин");
+                    else alert("Неверный пароль");  
+                }
+            });
+        
+    }
+</script>
+</html>

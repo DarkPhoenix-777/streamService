@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Редактировать альбом</title>
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+    <style>
+        td {
+            text-align: left;
+            vertical-align: middle;
+        }
+        img {
+          display: block;
+          width: auto;
+          height: auto;
+          max-width: 20%;
+        }
+    </style>
+</head>
+<body>
+    {% include "header.html"%}
+    {%if msg%}
+    <a href="album?id={{albId}}"> Назад</a>
+    {% endif %}
+    {%if not err and not msg%}
+    <input type="button"  onclick="confirmExit()" value="Назад">
+    <form method="post" id="addAlbumForm" enctype="multipart/form-data">
+        {% csrf_token %} <br>
+        <table>
+        <tr><td>Название:</td> <td><input type="text" name="AlbumName" value="{{albumName}}" required/></td></tr>
+        <tr>
+            <td>Тип:</td> <td><select name="AlbumType" required>
+                <option value="LP">Long Play</option>
+                <option value="EP">Extended Play</option>
+                <option value="Single">Single</option>
+                <option value="Demo">Demo</option>
+                <option value="Soundtrack">Soundtrack</option>
+                <option value="Tribute">Tribute</option>
+            </select></td>
+        </tr>
+        <tr><td>Автор:</td><td> <input type="text" name="AlbumAuthor" value="{{albumAuthor}}" required/> </td></tr>
+        <tr><td>Дата выхода:</td><td><input type="date" name="AlbumDate" value="{{date}}" required/><br></td></tr>
+        <tr><td>Обложка:</td><td><input type="file" name="AlbumCover" onchange="previewCover()"/></td></tr>
+    </table>
+        <img src="{{coverLink}}"><br>
+        <table id="tracks">
+            <tr><td></td><td>Название трека</td><td>Длительность (в секундах)</td></tr>
+            {% for track in tracks%}
+                <tr name="track{{track.0}}"><td>Трек №{{track.0}}: </td><td><input type="text" name="addTrack{{track.0}}" value="{{track.1}}"></td> <td><input type="number" name="durationTrack{{track.0}}" value="{{track.2}}"></td></tr>
+            {%endfor%}
+        </table>
+        <input type="hidden" name="countTracks" value={{tracksCount}}>
+        <input type="button" onclick="addTrack()" value="Добавить трек"></input>
+        <input type="button" onclick="deleteTrack()" value="Удалить трек"></input><br>
+        <input type="submit" value="Отправить">
+    </form>
+    {%endif%}
+    {% if msg %}
+        <br>{{msg}}
+    {%endif%}
+</body>
+<script>
+    var countTracks = {{tracksCount}};
+    function addTrack(){
+        countTracks++;
+        let trackFields = document.getElementById("tracks");
+        trackFields.insertAdjacentHTML('beforeend', '<tr name=track' + countTracks + '><td>Трек №' + countTracks + ': </td> <td><input type="text" name="addTrack' + countTracks + '"></td> <td><input type="number" name="durationTrack' + countTracks + '"></td></tr>')
+        $("input[name='countTracks']").val(countTracks);
+    }
+
+    function deleteTrack(){
+        if(countTracks > 1){
+            $("tr[name='track" + countTracks + "']").remove();
+            countTracks--;
+            $("input[name='countTracks']").val(countTracks);
+        }
+    }
+    
+    function confirmExit(){
+        formData = $("#addAlbumForm").serializeArray()
+        if(formData[1].value || formData[2].value || formData[3].value || formData[4].value || formData[5].value){
+            let w = confirm("Данные не сохранены. Выйти?");
+            if(w) history.back();
+        }
+    }
+    function previewCover() {
+      var preview = document.querySelector('img');
+      var file    = document.querySelector('input[type=file]').files[0];
+      var reader  = new FileReader();
+
+      reader.onloadend = function () {
+        preview.src = reader.result;
+      }
+
+      if (file) reader.readAsDataURL(file);
+    }
+</script>
+</html>

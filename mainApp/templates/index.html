@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Main Page</title>
+    <style>
+        .topTable td{
+            padding: 2px 2px;
+        }
+    </style>
+</head>
+<body>
+        {% include "header.html"%}
+        <p> {% if sessionData.login %}
+                Добро пожаловать {{ sessionData.login }} <br>
+            {% endif %}
+        </p>
+
+        {% if sessionData.login %}
+            {% if sessionData.isModerator %}
+                <a href="addAlbum"> Добавить альбом </a>
+                <br>
+                <a href="addAuthor"> Добавить группу </a>
+                <br>
+            {% endif %}
+            {% if sessionData.isAdmin%}
+                <a href="admin/users">Управление пользователями</a> <br>
+                <br>
+            {% endif %}
+        {% endif %}
+        <br>
+        <br>
+        Топ 10 альбомов:
+        <table class="topTable">
+        {% for album in albums %}
+            <tr><td>{{forloop.counter}}.</td> <td>{{album.0.authorName}}</td> <td><a href="album?id={{album.0.albId}}">{{album.0.albName}}</a></td>  <td>Просмотров:{{album.1}}</td> </tr>
+        {% endfor %}
+        </table>
+</body>
+</html>

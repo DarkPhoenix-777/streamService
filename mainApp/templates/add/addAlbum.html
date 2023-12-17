@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Новый альбом</title>
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+    <style>
+        td {
+            text-align: left;
+            vertical-align: middle;
+        }
+        img {
+          display: block;
+          width: auto;
+          height: auto;
+          max-width: 20%;
+        }
+    </style>
+</head>
+<body>
+    {% include "header.html"%}
+    {% if msg %} <p> {{msg}} </p> {% endif %}
+
+    <form method="post" id="addAlbumForm" enctype="multipart/form-data">
+        {% csrf_token %} <br>
+    <table>
+        <tr><td>Название:</td> <td><input type="text" name="AlbumName" required/></td></tr>
+        <tr>
+            <td>Тип:</td> <td><select name="AlbumType" required>
+                <option value="LP">Long Play</option>
+                <option value="EP">Extended Play</option>
+                <option value="Single">Single</option>
+                <option value="Demo">Demo</option>
+                <option value="Soundtrack">Soundtrack</option>
+                <option value="Tribute">Tribute</option>
+            </select></td>
+        </tr>
+        <tr><td>Автор:</td><td> <input type="text" name="AlbumAuthor" required/> </td></tr>
+        <tr><td>Дата выхода:</td><td><input type="date" name="AlbumDate" required/></td></tr>
+        <tr><td>Обложка:</td><td><input type="file" name="AlbumCover" onchange="previewCover()"/></td></tr>
+    </table>
+        <img src=""><br>
+         <br>
+        <table id="tracks"> 
+            <tr><td></td><td>Название трека</td><td>Длительность (в секундах)</td></tr>
+            <tr name="track1"><td>Трек №1: </td><td><input type="text" name="addTrack1"></td> <td><input type="number" name="durationTrack1"></td></tr>
+        </table>
+        <input type="hidden" name="countTracks" value=1>
+        <input type="button" onclick="addTrack()" value="Добавить трек"></input>
+                        <input type="button" onclick="deleteTrack()" value="Удалить трек"></input><br>
+        <br>
+        <input type="submit" value="Отправить">
+
+    </form>
+
+</body>
+<script>
+    function confirmExit(){
+        formData = $("#addAlbumForm").serializeArray()
+        if(formData[1].value || formData[2].value || formData[3].value || formData[4].value || formData[5].value){
+            let w = confirm("Данные не сохранены. Выйти?");
+            if(w) window.location.href = "/";
+        }
+        else window.location.href = "/";
+    }
+
+    $(function() {
+        $('input[name="AlbumAuthor"]').autocomplete({
+            source: function(request, response){
+                $.ajax({
+                    url: "autocompleteAuthor",
+                    dataType: "json",
+                    data: {
+                        search: request.term
+                    },
+                    success: function(data) {
+                        response(data["authorNames"]);
+                    }
+                })
+            },
+            minLength: 2,
+        });
+    });
+    var countTracks = 1;
+    function addTrack(){
+        countTracks++;
+        let trackFields = document.getElementById("tracks");
+        trackFields.insertAdjacentHTML('beforeend', '<tr name=track' + countTracks + '><td>Трек №' + countTracks + ': </td> <td><input type="text" name="addTrack' + countTracks + '"></td> <td><input type="number" name="durationTrack' + countTracks + '"></td></tr>')
+        $("input[name='countTracks']").val(countTracks);
+    }
+    function deleteTrack(){
+        if(countTracks > 1){
+            $("tr[name='track" + countTracks + "']").remove();
+            countTracks--;
+            $("input[name='countTracks']").val(countTracks);
+        }
+    }
+    function previewCover() {
+      var preview = document.querySelector('img');
+      var file    = document.querySelector('input[type=file]').files[0];
+      var reader  = new FileReader();
+
+      reader.onloadend = function () {
+        preview.src = reader.result;
+      }
+
+      if (file) reader.readAsDataURL(file);
+    }
+</script>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Поиск</title>
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+    <style>
+        table.searchTable {
+          border: 1px solid #000000;
+          background-color: #EEEEEE;
+          text-align: center;
+          border-collapse: collapse;
+        }
+        table.searchTable td, table.searchTable th {
+          border: 1px solid #666666;
+          padding: 3px 4px;
+        }
+        table.searchTable thead th {
+          font-weight: bold;
+          color: #FFFFFF;
+          border-left: 2px solid #D0E4F5;
+        }
+        table.searchTable thead th:first-child {
+          border-left: none;
+        }
+
+    </style>
+</head>
+<body>
+    {% include "header.html"%}
+    <form name="searchForm" id="searchForm" method="get">
+        <select name="selectSearch" id="selectType">
+            <option id="op0" value="Album" >Альбом</option>
+            <option id="op1" value="Track" >Трек</option>
+            <option id="op2" value="Author">Исполнитель</option>
+        </select>
+        <input type="hidden" name="page" id="page" value={{page}}>
+        <input type="text" name="searchField" value="{{query}}">
+        <input type="submit" value="Поиск" onclick="resetPage()">
+    </form>
+    <br>
+    {% if type == "Album"%}
+        <script> document.getElementById("selectType").value = "Album" </script>
+        <table class="searchTable">
+        {% autoescape off %}
+            {% for alb in objects %}
+            <tr><td>{{alb.0}}</td> <td>{{alb.1}}</td> <td>{{alb.2}}</td> <td>{{alb.3}}</td></tr>
+            {% endfor %}
+        {% endautoescape %}
+        </table>
+    {% endif %}
+
+
+    {% if type == "Track"%}
+        <script> document.getElementById("selectType").value = "Track" </script>
+        {% autoescape off %}
+        <table class="searchTable">
+            <tr><th>Название</th> <th>Длительность</th> <th>Альбом</th><th></th></tr>
+            {% for track in objects %}
+                    <tr><td>{{track.0}}</td> <td>{{track.1}}</td> <td>{{track.2}}</td>
+                        <td><input type="button" value="{%if track.3%}dislike{% else %}like{% endif %}"
+                       id="likeButton{{track.4}}" onclick="likeOrDislike({{track.4}})"></tr>
+
+            {% endfor %}
+            </table>
+        {% endautoescape %}
+    {% endif %}
+
+
+    {% if type == "Author"%}
+        <script> document.getElementById("selectType").value = "Author" </script>
+        {% autoescape off %}
+            {% for author in objects %}
+                <p>{{author}}</p>
+            {% endfor %}
+        {% endautoescape %}
+    {% endif %}
+    <br>
+    {% if len %}
+        <input type="button" value="Предыдущая" onclick="prevPage()">
+        {% for i in pagesCount %}
+            <input type="button" value="{{i|add:1}}" onclick="toPage({{i}})">
+        {%endfor%}
+        <input type="button" value="Следующая" onclick="nextPage()">
+    {%else%}
+        <p id="emptySearch"></p>
+    {%endif%}
+</body>
+<script>
+    pagesCount = {% if pagesCount %}{{ pagesCount|last }} {%else%} 0 {%endif%}
+    var urlParams = new URLSearchParams(window.location.href)
+    if(urlParams.get("searchField")) document.getElementById("emptySearch").innerHTML="Не найдено";
+
+    function nextPage(){
+        if(document.getElementById("page").value < pagesCount){
+            document.getElementById("page").value++;
+            document.getElementById("searchForm").submit()
+        }
+    }
+    function prevPage(){
+        if(document.getElementById("page").value > 1){
+            document.getElementById("page").value--;
+            document.getElementById("searchForm").submit()
+        }
+    }
+    function toPage(i){
+        document.getElementById("page").value = i;
+        document.getElementById("searchForm").submit()
+    }
+    function resetPage(){
+        document.getElementById("page").value = 0;
+    }
+    function likeOrDislike(trackId){
+      $.get("likeOrDislikeTrack", {"trackId":trackId}, function(data){
+        if(data.isLogin){
+            bt = "#likeButton"+trackId;
+            if($(bt).val() == "like") $(bt).val("dislike");
+            else $(bt).val("like");
+        }
+        else{
+            window.location.href="login";
+        }
+      })
+
+    }
+</script>
+</html>

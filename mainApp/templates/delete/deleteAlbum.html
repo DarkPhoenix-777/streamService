@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Удалить альбом</title>
+</head>
+<body>
+  {% include "header.html"%}
+  <form  method="POST">
+      {% csrf_token %}
+      Вы уверены?
+      <input type="submit" value="Да">
+  </form>
+
+</body>
+</html>

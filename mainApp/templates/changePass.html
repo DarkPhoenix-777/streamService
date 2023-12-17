@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Смена пароля</title>
+    {% load static %}
+    <script src="{% static 'libs/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'libs/jquery/jquery-ui.css' %}">
+    <script src="{% static 'libs/jquery/jquery-ui.min.js' %}"></script>
+</head>
+<body>
+  {% include "header.html"%}
+  <form name="changePassForm" id="changePassForm">
+    Введите старый пароль: <input type="password" id="oldPass" name="oldPass" required> <br>
+    Введите новый пароль: <input type="password" id="newPass1" name="newPass1" required><br>
+    Повторите новый пароль: <input type="password" id="newPass2" name="newPass2" required><br>
+    <input type="button" name="checkButton" onclick="check()" value="Отправить">
+  </form>
+</body>
+<script>
+  async function getSHA256Hash(txt) {
+        // encode as UTF-8
+        const msgBuffer = new TextEncoder().encode(txt);
+
+        // hash the message
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+        // convert ArrayBuffer to Array
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+        // convert bytes to hex string
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
+  function check(){
+    getSHA256Hash($("#oldPass").val()).then((data)=>{
+        oldPassHash = data;
+        getSHA256Hash($("#newPass1").val()).then((data)=>{
+            newPassHash1 = data;
+            getSHA256Hash($("#newPass2").val()).then((data)=>{
+                newPassHash2 = data;
+                if(newPassHash1 != newPassHash2) alert("Пароли должны совпадать");
+                else if($("#newPass1").val().length < 8) alert("Пароль должен содержать минимум 8 символов")
+                else{
+                  changePassForm = $("#changePassForm").serializeArray();
+                  changePassForm[0].value=oldPassHash;
+                  changePassForm[1].value=newPassHash1;
+                  changePassForm[2].value=newPassHash2;
+
+                  $.ajax({
+                    url: "changePass",
+                    method: "POST",
+                    headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                    data: changePassForm,
+                    success: function(data){
+                        if(data.isWrongPass) alert("Неверный пароль");
+                        else{
+                            alert("Пароль успешно сменён");
+                            setTimeout(()=>{
+                                window.location.href="lk";
+                            }, 2000);
+
+                        }
+                    }
+                  })
+                }
+
+            });
+        });
+    });
+
+  }
+</script>
+</html>

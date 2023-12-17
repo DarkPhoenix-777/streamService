@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Альбомы</title>
+</head>
+<body>
+    <header>
+        {% include "header.html"%}
+    </header>
+    <ol>
+    {% for album in albums %}
+           <li> {{album.0.authorName}} - <a href="album?id={{album.0.albId}}">{{album.0.albName}}</a></li>
+    {% endfor %}
+    </ol>
+</body>
+</html>
